@@ -1,0 +1,19 @@
+openapi: 3.0.0
+info:
+  title: Documentation
+  description: Документация
+  version: 1.0.0
+paths:
+  /guests:
+    get:
+      tags:
+        - Guests
+      summary: 'Получение всех гостей'
+      operationId: 3283dd7272978715eb13c975c95b8a75
+      responses:
+        '200':
+          description: 'Возвращает список всех гостей с их информацией'
+tags:
+  -
+    name: Guests
+    description: Guests

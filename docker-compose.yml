@@ -1,0 +1,60 @@
+version: "2.4"
+
+services:
+    nginx:
+      restart: always
+      image: nginx:alpine
+      volumes:
+        - app-data:/var/www/app
+        - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        - ./docker/nginx/fastcgi.conf:/etc/nginx/fastcgi.conf
+      ports:
+        - "8080:8080"
+      depends_on:
+        - app
+      networks:
+        - guests_network
+
+    app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      container_name: app
+      volumes:
+        - app-data:/var/www/app
+      depends_on:
+        db:
+          condition: service_healthy
+      working_dir: /var/www/app
+      networks: 
+        - guests_network
+      
+    db:
+      restart: unless-stopped
+      image: postgres:14.12-alpine3.20
+      environment:
+        - POSTGRES_DB=Guests
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+        - PGDATA=/var/lib/postgresql/data/pgdata
+      container_name: db
+      ports:
+        - 5432:5432
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -d Guests -U postgres" ]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+      networks:
+        - guests_network
+
+volumes:
+  pgdata:
+    driver: local
+  app-data:
+
+networks:
+  guests_network:
+    driver: bridge
